@@ -1,0 +1,40 @@
+# Tạo/update file .gitignore
+cat > .gitignore << 'EOF'
+# Python
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Database and storage
+postgres_data/
+
+data_lake/
+
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.pem
+*.key
+*.cert
+
+# MinIO system files
+.minio.sys/
+
+# Dagger
+.dagger/
+EOF
