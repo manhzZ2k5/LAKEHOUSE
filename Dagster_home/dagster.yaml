@@ -1,0 +1,23 @@
+storage:
+  postgres:
+    postgres_db:
+      username:
+        env: POSTGRES_USER
+      password:
+        env: POSTGRES_PASSWORD
+      hostname: postgres
+      db_name:
+        env: POSTGRES_DB
+      port: 5432
+
+# Compute Logs: Defaults to local filesystem in $DAGSTER_HOME/storage
+# No explicit config needed unless changing destination.
+
+# Run Coordinator: Controls how runs are launched (Queued vs Default)
+# Using QueuedRunCoordinator is recommended for production.
+run_coordinator:
+  module: dagster
+  class: QueuedRunCoordinator
+
+# Scheduler: Default DaemonScheduler is used automatically.
+

@@ -35,3 +35,42 @@ services:
       - "${POSTGRES_PORT}:5432"
     networks:
       - lakehouse-net
+
+
+  # service3: dagster-webserver
+  dagster-webserver:
+    build: ./Dagster_home
+    container_name: lakehouse-dagster-webserver
+    ports:
+      - "3000:3000"
+    networks:
+      - lakehouse-net
+    environment:
+      DAGSTER_HOME: /opt/dagster/dagster_home
+    env_file:
+      - .env
+    volumes:
+      - ./Dagster_home:/opt/dagster/app
+      - ./Dagster_home/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
+    depends_on:
+      - postgres
+    command: dagster-webserver -h 0.0.0.0 -p 3000
+  
+
+  # service4: dagster-daemon
+  dagster-daemon:
+    build: ./Dagster_home
+    container_name: lakehouse-dagster-daemon
+    networks:
+      - lakehouse-net
+    environment:
+      DAGSTER_HOME: /opt/dagster/dagster_home
+    env_file:
+      - .env
+    volumes:
+      - ./Dagster_home:/opt/dagster/app
+      - ./Dagster_home/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
+    depends_on:
+      - postgres
+    command: dagster-daemon run
+

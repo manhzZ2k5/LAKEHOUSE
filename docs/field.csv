@@ -1,0 +1,55 @@
+Tên trường (Field Name),Mô tả (Description),Kiểu (Type),% Null,Ghi chú & Lý do (Nếu % Null cao)
+date,Ngày ghi nhận dữ liệu,Date,0.0%,
+location_key,"Mã định danh địa điểm (VD: VN, US_CA)",Text,0.0%,
+country_name,Tên quốc gia,Text,0.0%,
+subregion1_name,Tên vùng cấp 1 (Tỉnh/Bang),Text,1.08%,
+subregion2_name,Tên vùng cấp 2 (Quận/Huyện),Text,7.45%,
+aggregation_level,"Cấp độ hành chính (0: QG, 1: Tỉnh, 2: Huyện)",Integer,0.0%,
+new_confirmed,Số ca nhiễm mới trong ngày,Double,45.18%,⚠️ Dịch chưa bùng phát năm 2020 ở nhiều nơi; Thiếu báo cáo cấp xã/huyện.
+cumulative_confirmed,Tổng số ca nhiễm lũy kế,Double,45.83%,⚠️ Dịch chưa bùng phát năm 2020 ở nhiều nơi; Thiếu báo cáo cấp xã/huyện.
+new_deceased,Số ca tử vong mới trong ngày,Double,48.73%,⚠️ Dịch chưa bùng phát năm 2020 ở nhiều nơi; Thiếu báo cáo cấp xã/huyện.
+cumulative_deceased,Tổng số ca tử vong lũy kế,Double,49.58%,⚠️ Dịch chưa bùng phát năm 2020 ở nhiều nơi; Thiếu báo cáo cấp xã/huyện.
+new_tested,Số lượng xét nghiệm mới,Double,85.96%,⚠️ Nhiều nơi không báo cáo ca hồi phục/xét nghiệm định kỳ.
+cumulative_tested,Tổng số lượng xét nghiệm lũy kế,Double,86.76%,⚠️ Nhiều nơi không báo cáo ca hồi phục/xét nghiệm định kỳ.
+new_recovered,Số ca hồi phục mới,Double,82.51%,⚠️ Nhiều nơi không báo cáo ca hồi phục/xét nghiệm định kỳ.
+cumulative_recovered,Tổng số ca hồi phục lũy kế,Double,82.46%,⚠️ Nhiều nơi không báo cáo ca hồi phục/xét nghiệm định kỳ.
+new_persons_vaccinated,Số người được tiêm ít nhất 1 mũi (mới),Double,95.9%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+cumulative_persons_vaccinated,Tổng người được tiêm ít nhất 1 mũi,Double,96.1%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+new_persons_fully_vaccinated,Số người được tiêm đủ liều (mới),Double,88.92%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+cumulative_persons_fully_vaccinated,Tổng người được tiêm đủ liều,Double,88.91%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+new_vaccine_doses_administered,Số liều vắc-xin sử dụng mới,Double,95.87%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+cumulative_vaccine_doses_administered,Tổng số liều vắc-xin đã sử dụng,Double,96.06%,⚠️ Vắc-xin chỉ có từ 2021; Thiếu dữ liệu cấp Huyện.
+hospital_beds_per_1000,Số giường bệnh trên 1.000 dân,Double,99.89%,⚠️ Dữ liệu y tế chi tiết thường chỉ báo cáo cấp QG/Tỉnh.
+new_hospitalized_patients,Số bệnh nhân nhập viện mới,Double,92.75%,⚠️ Dữ liệu y tế chi tiết thường chỉ báo cáo cấp QG/Tỉnh.
+cumulative_hospitalized_patients,Tổng số bệnh nhân nhập viện,Double,92.77%,⚠️ Dữ liệu y tế chi tiết thường chỉ báo cáo cấp QG/Tỉnh.
+new_intensive_care_patients,Số bệnh nhân ICU mới,Double,94.96%,⚠️ Dữ liệu y tế chi tiết thường chỉ báo cáo cấp QG/Tỉnh.
+cumulative_intensive_care_patients,Tổng số bệnh nhân ICU,Double,94.96%,⚠️ Dữ liệu y tế chi tiết thường chỉ báo cáo cấp QG/Tỉnh.
+population,Dân số tổng,Double,5.68%,
+population_density,Mật độ dân số (người/km2),Double,94.81%,⚠️ Thiếu dữ liệu diện tích/mật độ ở cấp hành chính nhỏ.
+population_male,Dân số nam,Double,23.32%,
+population_female,Dân số nữ,Double,23.32%,
+population_age_60_69,Dân số 60-69 tuổi,Double,25.04%,
+population_age_70_79,Dân số 70-79 tuổi,Double,25.41%,
+population_age_80_and_older,Dân số trên 80 tuổi,Double,26.14%,
+gdp_per_capita_usd,GDP bình quân đầu người (USD),Double,98.41%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+human_development_index,Chỉ số HDI,Double,75.01%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+life_expectancy,Tuổi thọ trung bình,Double,84.76%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+smoking_prevalence,Tỷ lệ hút thuốc (%),Double,99.36%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+diabetes_prevalence,Tỷ lệ tiểu đường (%),Double,99.09%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+stringency_index,Chỉ số nghiêm ngặt (0-100),Double,98.67%,⚠️ Chỉ số Vĩ mô chỉ có ở cấp Quốc gia (chiếm tỷ lệ nhỏ số dòng).
+school_closing,Đóng cửa trường học (0-3),Double,98.67%,⚠️ Dữ liệu chính sách Oxford chủ yếu ở cấp Quốc gia.
+workplace_closing,Đóng cửa công sở (0-3),Double,98.67%,⚠️ Dữ liệu chính sách Oxford chủ yếu ở cấp Quốc gia.
+stay_at_home_requirements,Yêu cầu ở nhà (0-3),Double,98.67%,⚠️ Dữ liệu chính sách Oxford chủ yếu ở cấp Quốc gia.
+vaccination_policy,Chính sách tiêm chủng (0-5),Double,98.68%,⚠️ Dữ liệu chính sách Oxford chủ yếu ở cấp Quốc gia.
+mobility_retail_and_recreation,Di chuyển: Bán lẻ & Giải trí,Double,81.71%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+mobility_grocery_and_pharmacy,Di chuyển: Tạp hóa & Thuốc,Double,82.72%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+mobility_parks,Di chuyển: Công viên,Double,87.09%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+mobility_transit_stations,Di chuyển: Trạm xe,Double,86.01%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+mobility_workplaces,Di chuyển: Nơi làm việc,Double,72.79%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+mobility_residential,Di chuyển: Tại nhà,Double,81.88%,⚠️ Google ẩn dữ liệu vùng ít dân; Không có dữ liệu ở một số quốc gia.
+average_temperature_celsius,Nhiệt độ trung bình (°C),Double,4.73%,
+search_trends_fever,Search: Sốt,Double,93.77%,⚠️ Google ẩn dữ liệu vùng ít dân (Privacy threshold).
+search_trends_cough,Search: Ho,Double,93.56%,⚠️ Google ẩn dữ liệu vùng ít dân (Privacy threshold).
+search_trends_shortness_of_breath,Search: Khó thở,Double,97.47%,⚠️ Google ẩn dữ liệu vùng ít dân (Privacy threshold).
+search_trends_anosmia,Search: Mất khứu giác,Double,99.4%,⚠️ Google ẩn dữ liệu vùng ít dân (Privacy threshold).
+search_trends_pneumonia,Search: Viêm phổi,Double,96.96%,⚠️ Google ẩn dữ liệu vùng ít dân (Privacy threshold).
