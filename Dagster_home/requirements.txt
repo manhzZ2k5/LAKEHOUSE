@@ -5,3 +5,10 @@ dagster-aws
 dagster-docker
 pandas
 pyspark
+
+pyarrow         
+# Engine chính để xử lý Parquet (Rất quan trọng)
+fastparquet      
+# Engine dự phòng
+s3fs 
+#Để Pandas nói chuyện với MinIO (S3)
