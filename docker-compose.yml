@@ -36,7 +36,6 @@ services:
     networks:
       - lakehouse-net
 
-
   # service3: dagster-webserver
   dagster-webserver:
     build: ./Dagster_home
@@ -47,15 +46,22 @@ services:
       - lakehouse-net
     environment:
       DAGSTER_HOME: /opt/dagster/dagster_home
+      PYTHONPATH: /opt/dagster/app:/opt/dagster/etl # <--- THÊM DÒNG NÀY: Chỉ đường cho Python
+      TZ: Asia/Ho_Chi_Minh
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_DRIVER_HOST: dagster-webserver
+      SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
     env_file:
       - .env
     volumes:
       - ./Dagster_home:/opt/dagster/app
       - ./Dagster_home/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
+      - ./etl:/opt/dagster/etl # <--- THÊM DÒNG NÀY: Mount thư mục etl vào container
+      - ./etl_pipeline:/opt/dagster/app/etl_pipeline # <--- THÊM DÒNG NÀY: Mount package etl_pipeline
     depends_on:
       - postgres
+      - spark-master
     command: dagster-webserver -h 0.0.0.0 -p 3000
-  
 
   # service4: dagster-daemon
   dagster-daemon:
@@ -65,12 +71,45 @@ services:
       - lakehouse-net
     environment:
       DAGSTER_HOME: /opt/dagster/dagster_home
+      PYTHONPATH: /opt/dagster/app:/opt/dagster/etl # <--- THÊM DÒNG NÀY
+      TZ: Asia/Ho_Chi_Minh
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_DRIVER_HOST: dagster-daemon
+      SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
     env_file:
       - .env
     volumes:
       - ./Dagster_home:/opt/dagster/app
       - ./Dagster_home/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
+      - ./etl:/opt/dagster/etl # <--- THÊM DÒNG NÀY
+      - ./etl_pipeline:/opt/dagster/app/etl_pipeline # <--- THÊM DÒNG NÀY
     depends_on:
       - postgres
+      - spark-master
     command: dagster-daemon run
 
+  # service5: spark-master
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: lakehouse-spark-master
+    networks:
+      - lakehouse-net
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.master.Master
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+
+  # service6: spark-worker
+  spark-worker:
+    image: apache/spark:3.5.1
+    container_name: lakehouse-spark-worker
+    networks:
+      - lakehouse-net
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+    depends_on:
+      - spark-master

@@ -4,7 +4,8 @@ dagster-postgres
 dagster-aws
 dagster-docker
 pandas
-pyspark
+pyspark==3.5.1
+delta-spark==3.2.0
 
 pyarrow         
 # Engine chính để xử lý Parquet (Rất quan trọng)
