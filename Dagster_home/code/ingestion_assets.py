@@ -44,9 +44,10 @@ def batch_ingestion_asset(context):
 
 
 # --- 3. JOB ---
+# Chạy cả ingestion và silver trong cùng một job
 ingestion_job = define_asset_job(
     name="batch_ingestion_asset_job",
-    selection=["batch_ingestion_asset"],
+    selection=["batch_ingestion_asset", "silver_covid_data"],
 )
 
 

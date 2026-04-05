@@ -48,6 +48,7 @@ services:
       DAGSTER_HOME: /opt/dagster/dagster_home
       PYTHONPATH: /opt/dagster/app:/opt/dagster/etl # <--- THÊM DÒNG NÀY: Chỉ đường cho Python
       TZ: Asia/Ho_Chi_Minh
+      SPARK_EXTRA_JARS: /opt/dagster/jars/delta-spark_2.12-3.2.0.jar,/opt/dagster/jars/delta-storage-3.2.0.jar,/opt/dagster/jars/hadoop-aws-3.3.4.jar,/opt/dagster/jars/aws-java-sdk-bundle-1.12.262.jar
       SPARK_MASTER_URL: spark://spark-master:7077
       SPARK_DRIVER_HOST: dagster-webserver
       SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
@@ -73,6 +74,7 @@ services:
       DAGSTER_HOME: /opt/dagster/dagster_home
       PYTHONPATH: /opt/dagster/app:/opt/dagster/etl # <--- THÊM DÒNG NÀY
       TZ: Asia/Ho_Chi_Minh
+      SPARK_EXTRA_JARS: /opt/dagster/jars/delta-spark_2.12-3.2.0.jar,/opt/dagster/jars/delta-storage-3.2.0.jar,/opt/dagster/jars/hadoop-aws-3.3.4.jar,/opt/dagster/jars/aws-java-sdk-bundle-1.12.262.jar
       SPARK_MASTER_URL: spark://spark-master:7077
       SPARK_DRIVER_HOST: dagster-daemon
       SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
@@ -90,10 +92,14 @@ services:
 
   # service5: spark-master
   spark-master:
-    image: apache/spark:3.5.1
+    build: ./spark
+    image: lakehouse-spark:3.5.1-py310
     container_name: lakehouse-spark-master
     networks:
       - lakehouse-net
+    environment:
+      - PYSPARK_PYTHON=/opt/pyenv/shims/python
+      - PYSPARK_DRIVER_PYTHON=/opt/pyenv/shims/python
     command:
       - /opt/spark/bin/spark-class
       - org.apache.spark.deploy.master.Master
@@ -103,13 +109,74 @@ services:
 
   # service6: spark-worker
   spark-worker:
-    image: apache/spark:3.5.1
+    build: ./spark
+    image: lakehouse-spark:3.5.1-py310
     container_name: lakehouse-spark-worker
     networks:
       - lakehouse-net
+    environment:
+      - PYSPARK_PYTHON=/opt/pyenv/shims/python
+      - PYSPARK_DRIVER_PYTHON=/opt/pyenv/shims/python
     command:
       - /opt/spark/bin/spark-class
       - org.apache.spark.deploy.worker.Worker
       - spark://spark-master:7077
     depends_on:
       - spark-master
+
+  # service7: spark-thrift-server
+  spark-thrift:
+    image: lakehouse-spark:3.5.1-py310
+    container_name: lakehouse-spark-thrift
+    networks:
+      - lakehouse-net
+    env_file:
+      - .env
+    environment:
+      - PYSPARK_PYTHON=/opt/pyenv/shims/python
+      - PYSPARK_DRIVER_PYTHON=/opt/pyenv/shims/python
+    command:
+      - /bin/bash
+      - -lc
+      - >
+        /opt/spark/sbin/start-thriftserver.sh
+        --master spark://spark-master:7077
+        --name "Spark Thrift Server"
+        --packages io.delta:delta-core_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog
+        --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000
+        --conf spark.hadoop.fs.s3a.access.key=${MINIO_ROOT_USER}
+        --conf spark.hadoop.fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}
+        --conf spark.hadoop.fs.s3a.path.style.access=true
+        --conf spark.hadoop.fs.s3a.connection.ssl.enabled=false
+        --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+        --conf spark.sql.warehouse.dir=s3a://gold-lake/warehouse
+        && tail -f /opt/spark/logs/*thriftserver*.out
+    ports:
+      - "10000:10000"
+    depends_on:
+      - spark-master
+
+  # service8: superset
+  superset:
+    build: ./superset
+    container_name: lakehouse-superset
+    ports:
+      - "8088:8088"
+    networks:
+      - lakehouse-net
+    environment:
+      SUPERSET_SECRET_KEY: "change_me_to_a_secure_random_string"
+      SUPERSET_ADMIN_USER: "admin"
+      SUPERSET_ADMIN_PASSWORD: "admin123"
+      SUPERSET_ADMIN_EMAIL: "admin@example.com"
+      SUPERSET_HOME: /app/superset_home
+      SUPERSET_LOAD_EXAMPLES: "no"
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - ./superset/init.sh:/app/init.sh
+      - ./superset_home:/app/superset_home
+    depends_on:
+      - spark-thrift
+    command: ["/bin/bash", "/app/init.sh"]
