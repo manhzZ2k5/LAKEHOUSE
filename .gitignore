@@ -28,4 +28,32 @@ Thumbs.db
 *.minio
 
 .codex
-data_lake
+data_lake/
+postgres_data/
+superset_home/
+mlruns/
+mlflow.db
+logs/
+
+# File chứa thông tin bảo mật (Tuyệt đối không push lên Github)
+.env
+
+# Ngăn chặn đẩy "Kết quả" (Data artifacts)
+*.csv
+*.tsv
+*.parquet
+*.sqlite
+*.sqlite3
+*.db
+
+# Notebook checkpoints (Lưu nháp Jupyter)
+.ipynb_checkpoints/
+
+# Bộ nhớ tạm của Spark/Dagster
+spark-warehouse/
+derby.log
+metastore_db/
+
+# Bỏ qua các file Java binaries (để tránh lỗi quá giới hạn 100MB của Github)
+*.jar
+etl_pipeline/jars/
