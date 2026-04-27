@@ -32,11 +32,11 @@ Các script sẽ tự động tìm kiếm file `.env` ở thư mục gốc (`d:\
 
 ---
 
-## 🚀 Hướng Dẫn Chạy Script (How to Run)
+## 🚀 Hướng Dẫn Chạy Script
 
 Có 2 phương pháp để kích hoạt chạy file huấn luyện trong thư mục này:
 
-### Phương pháp 1: Chạy qua Container `lakehouse-api` (Khuyên dùng)
+### Phương pháp 1: Chạy qua Container `lakehouse-api`
 Vì container `lakehouse-api` đã được cài đặt sẵn 100% các thư viện cần thiết (`pandas`, `scikit-learn`, `mlflow`, `deltalake`...) và đã được liên kết Volume thẳng tới thư mục `ml/`, bạn có thể chạy an toàn tuyệt đối bên trong nó:
 
 1. Mở Terminal / PowerShell.
@@ -49,17 +49,3 @@ Vì container `lakehouse-api` đã được cài đặt sẵn 100% các thư vi�
    docker exec -it lakehouse-api python ml/train_policy_effectiveness.py
    ```
 
-### Phương pháp 2: Chạy Local trực tiếp (Local Virtual Environment)
-Nếu bạn mở Terminal trực tiếp trong VS Code trên Windows và dùng Python cài trên máy:
-
-1. Đảm bảo bạn đang kích hoạt môi trường ảo (Virtual Environment).
-2. Cài đặt toàn bộ thư viện bắt buộc:
-   ```bash
-   pip install pandas scikit-learn mlflow deltalake sqlalchemy psycopg2-binary
-   ```
-3. Chạy lệnh:
-   ```bash
-   python ml/train_healthcare_forecast.py
-   ```
-
-*Lưu ý cho Phương pháp 2: Vì bạn chạy Local, thông số host kết nối từ Local vào Docker phải là `localhost` (Ví dụ `POSTGRES_HOST=localhost`), nếu trong `.env` đang khai báo là `POSTGRES_HOST=postgres` (chỉ hiểu trong nội bộ docker) thì sẽ bị lỗi Connection Refused!*
