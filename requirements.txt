@@ -1,0 +1,16 @@
+pandas
+sqlalchemy
+psycopg2-binary
+boto3
+s3fs
+pyspark
+delta-spark
+trino[sqlalchemy]
+dagster
+dagster-webserver
+mlflow
+scikit-learn
+xgboost
+streamlit
+fastapi
+uvicorn

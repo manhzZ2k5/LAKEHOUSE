@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 
 from dagster import (
     asset,
@@ -14,7 +15,7 @@ from etl_pipeline.ingestion_logic import process_batch_data
 from shared import covid_partitions
 
 # --- 1. CẤU HÌNH ---
-DB_CON_STR = "postgresql://covid_user:123456@host.docker.internal:5432/COVID-19"
+DB_CON_STR = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@postgres:5432/{os.getenv('POSTGRES_DB')}"
 
 MINIO_CONFIG = {
     "key": "minio_admin",

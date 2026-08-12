@@ -18,6 +18,7 @@ storage:
 run_coordinator:
   module: dagster
   class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 2
 
 # Scheduler: Default DaemonScheduler is used automatically.
-

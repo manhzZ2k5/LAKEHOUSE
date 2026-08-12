@@ -30,6 +30,25 @@ from gold_assets import (
     covid_analytic_cube,
 )
 
+# Import luồng ML (Silver → MLflow Registry)
+# Dagster lineage: batch_ingestion_asset → silver_covid_data → auto_train_*
+# ML đọc từ Silver Lake (MinIO/Delta Lake) qua deltalake library, không cần Spark
+from ml_assets import auto_train_healthcare_forecast, auto_train_policy_effectiveness
+from dagster import ScheduleDefinition, define_asset_job
+
+# Job quản lý tác vụ ML
+ml_assets_job = define_asset_job(
+    name="ml_training_job",
+    selection=["auto_train_healthcare_forecast", "auto_train_policy_effectiveness"]
+)
+
+# Lịch trình tự động chạy 12h trưa mỗi ngày
+ml_daily_schedule = ScheduleDefinition(
+    job=ml_assets_job,
+    cron_schedule="0 12 * * *", 
+    execution_timezone="Asia/Ho_Chi_Minh" 
+)
+
 # Đăng ký vào Dagster
 defs = Definitions(
     assets=[
@@ -43,7 +62,10 @@ defs = Definitions(
         fact_social_behavior,
         fact_healthcare_system,
         covid_analytic_cube,
+        auto_train_healthcare_forecast,
+        auto_train_policy_effectiveness
     ],
-    jobs=[ingestion_job],
+    jobs=[ingestion_job, ml_assets_job],
     sensors=[rolling_playback_sensor],
+    schedules=[ml_daily_schedule],
 )

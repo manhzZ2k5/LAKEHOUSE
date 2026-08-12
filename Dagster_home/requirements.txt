@@ -13,3 +13,7 @@ fastparquet
 # Engine dự phòng
 s3fs 
 #Để Pandas nói chuyện với MinIO (S3)
+scikit-learn==1.5.2
+xgboost
+mlflow
+deltalake          # Đọc Delta Lake từ MinIO không cần Spark (delta-rs)

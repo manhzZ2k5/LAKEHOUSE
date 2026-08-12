@@ -20,6 +20,25 @@ from pyspark.sql.types import IntegerType, DoubleType, StringType
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Spark_Gold_Worker")
 
+DEFAULT_SPARK_PACKAGES = ",".join(
+    [
+        "io.delta:delta-spark_2.12:3.2.0",
+        "org.apache.hadoop:hadoop-aws:3.3.4",
+        "com.amazonaws:aws-java-sdk-bundle:1.12.262",
+    ]
+)
+
+
+def _configure_dependencies(builder: SparkSession.Builder) -> SparkSession.Builder:
+    packages = os.environ.get("SPARK_JARS_PACKAGES", DEFAULT_SPARK_PACKAGES).strip()
+    if packages:
+        builder = builder.config("spark.jars.packages", packages)
+        builder = builder.config(
+            "spark.jars.ivy", os.environ.get("SPARK_IVY_DIR", "/tmp/.ivy2")
+        )
+        logger.info("Spark deps via spark.jars.packages: %s", packages)
+    return builder
+
 
 def _reset_spark_context():
     try:
@@ -68,13 +87,12 @@ def _build_spark(minio_endpoint, minio_access_key, minio_secret_key):
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     )
 
+    builder = _configure_dependencies(builder)
+
     if driver_host:
         builder = builder.config("spark.driver.host", driver_host)
     if driver_bind:
         builder = builder.config("spark.driver.bindAddress", driver_bind)
-    extra_jars = os.environ.get("SPARK_EXTRA_JARS")
-    if extra_jars:
-        builder = builder.config("spark.jars", extra_jars)
 
     spark = builder.getOrCreate()
 

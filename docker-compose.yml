@@ -36,6 +36,23 @@ services:
     networks:
       - lakehouse-net
 
+  # service2b: mlflow tracking server
+  mlflow:
+    image: python:3.11-slim
+    container_name: lakehouse-mlflow
+    networks:
+      - lakehouse-net
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./mlflow.db:/mlflow/mlflow.db
+    command: >
+      bash -lc "pip install --no-cache-dir mlflow && \
+      mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts '*' \
+        --backend-store-uri sqlite:////mlflow/mlflow.db \
+        --default-artifact-root /mlflow/mlruns"
+
   # service3: dagster-webserver
   dagster-webserver:
     build: ./Dagster_home
@@ -52,6 +69,11 @@ services:
       SPARK_MASTER_URL: spark://spark-master:7077
       SPARK_DRIVER_HOST: dagster-webserver
       SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
+      # Dùng JAR local (tải lúc build), không download từ Maven → fix ClassNotFoundException
+      SPARK_JARS_PACKAGES: ""
+      PYSPARK_SUBMIT_ARGS: >-
+        --jars /opt/dagster/jars/delta-spark_2.12-3.2.0.jar,/opt/dagster/jars/delta-storage-3.2.0.jar,/opt/dagster/jars/hadoop-aws-3.3.4.jar,/opt/dagster/jars/aws-java-sdk-bundle-1.12.262.jar
+        pyspark-shell
     env_file:
       - .env
     volumes:
@@ -62,6 +84,7 @@ services:
     depends_on:
       - postgres
       - spark-master
+      - mlflow
     command: dagster-webserver -h 0.0.0.0 -p 3000
 
   # service4: dagster-daemon
@@ -78,6 +101,11 @@ services:
       SPARK_MASTER_URL: spark://spark-master:7077
       SPARK_DRIVER_HOST: dagster-daemon
       SPARK_DRIVER_BIND_ADDRESS: 0.0.0.0
+      # Dùng JAR local (tải lúc build), không download từ Maven → fix ClassNotFoundException
+      SPARK_JARS_PACKAGES: ""
+      PYSPARK_SUBMIT_ARGS: >-
+        --jars /opt/dagster/jars/delta-spark_2.12-3.2.0.jar,/opt/dagster/jars/delta-storage-3.2.0.jar,/opt/dagster/jars/hadoop-aws-3.3.4.jar,/opt/dagster/jars/aws-java-sdk-bundle-1.12.262.jar
+        pyspark-shell
     env_file:
       - .env
     volumes:
@@ -88,6 +116,7 @@ services:
     depends_on:
       - postgres
       - spark-master
+      - mlflow
     command: dagster-daemon run
 
   # service5: spark-master
@@ -180,3 +209,34 @@ services:
     depends_on:
       - spark-thrift
     command: ["/bin/bash", "/app/init.sh"]
+
+  # service9: lakehouse-api
+  api:
+    build: ./api
+    container_name: lakehouse-api
+    networks:
+      - lakehouse-net
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app          # Mount source code → sửa main.py có hiệu lực ngay (không cần rebuild)
+      - ./ml:/app/ml
+      - ./mlruns:/mlflow/mlruns
+      - ./mlflow.db:/mlflow/mlflow.db
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+
+  # service10: lakehouse-streamlit
+  streamlit:
+    build: ./streamlit_app
+    container_name: lakehouse-streamlit
+    networks:
+      - lakehouse-net
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    volumes:
+      - ./streamlit_app:/app   # Mount source code → sửa app.py có hiệu lực ngay
+    depends_on:
+      - api

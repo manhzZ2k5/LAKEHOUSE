@@ -1,7 +1,6 @@
 from dagster import (
     AssetDep,
     AutoMaterializePolicy,
-    MonthlyPartitionsDefinition,
     TimeWindowPartitionMapping,
     asset,
 )
@@ -15,13 +14,14 @@ from etl_pipeline.gold_logic import (
     process_fact_social_behavior,
     process_fact_healthcare_system,
 )
+from shared import covid_monthly_partitions
 
 
-# Gold partition theo thang, bat dau tu 2020-01-01
-monthly_partitions = MonthlyPartitionsDefinition(
-    start_date="2020-01-01",
-    timezone="Asia/Ho_Chi_Minh",
-)
+# Silver la daily, Gold la monthly.
+# TimeWindowPartitionMapping giup Dagster hieu: moi daily partition thuoc ve thang nao,
+# thi thang do se duoc auto-materialize khi daily partition thay doi.
+SILVER_TO_GOLD_MAPPING = TimeWindowPartitionMapping()
+SILVER_DEP = AssetDep("silver_covid_data", partition_mapping=SILVER_TO_GOLD_MAPPING)
 
 # Silver la daily, Gold la monthly.
 # TimeWindowPartitionMapping giup Dagster hieu: moi daily partition thuoc ve thang nao,
@@ -31,7 +31,7 @@ SILVER_DEP = AssetDep("silver_covid_data", partition_mapping=SILVER_TO_GOLD_MAPP
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -58,7 +58,7 @@ def dim_date(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -85,7 +85,7 @@ def dim_location(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -112,7 +112,7 @@ def fact_policy_impact(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -139,7 +139,7 @@ def fact_covid_cases(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -166,7 +166,7 @@ def fact_vaccination(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -193,7 +193,7 @@ def fact_social_behavior(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     deps=[SILVER_DEP],
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
@@ -220,7 +220,7 @@ def fact_healthcare_system(context):
 
 
 @asset(
-    partitions_def=monthly_partitions,
+    partitions_def=covid_monthly_partitions,
     group_name="gold",
     auto_materialize_policy=AutoMaterializePolicy.eager(),
     deps=[

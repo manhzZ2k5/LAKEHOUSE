@@ -1,13 +1,36 @@
+import logging
 import os
 import re
+
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StringType, DoubleType, IntegerType, DateType
 from pyspark.sql.functions import col, to_date, trim, lit
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Spark_Silver_Worker")
+
+
+DEFAULT_SPARK_PACKAGES = ",".join(
+    [
+        "io.delta:delta-spark_2.12:3.2.0",
+        "org.apache.hadoop:hadoop-aws:3.3.4",
+        "com.amazonaws:aws-java-sdk-bundle:1.12.262",
+    ]
+)
+
+
+def _configure_dependencies(builder: SparkSession.Builder) -> SparkSession.Builder:
+    # Use Maven/Ivy packages so the Dagster container doesn't need local jar files
+    # like /opt/dagster/jars/*.jar (which may not exist unless images are rebuilt).
+    packages = os.environ.get("SPARK_JARS_PACKAGES", DEFAULT_SPARK_PACKAGES).strip()
+    if packages:
+        builder = builder.config("spark.jars.packages", packages)
+        builder = builder.config(
+            "spark.jars.ivy", os.environ.get("SPARK_IVY_DIR", "/tmp/.ivy2")
+        )
+        logger.info(f"Spark deps via spark.jars.packages: {packages}")
+    return builder
 
 def process_bronze_to_silver(target_date, minio_endpoint, minio_access_key, minio_secret_key):
     logger.info(f"Khởi động Spark để xử lý dữ liệu ngày: {target_date}")
@@ -20,6 +43,7 @@ def process_bronze_to_silver(target_date, minio_endpoint, minio_access_key, mini
                 stopped = active_sc._jsc is None or active_sc._jsc.sc().isStopped()
             except Exception:
                 stopped = True
+                
             if stopped:
                 SparkContext._active_spark_context = None
                 SparkSession._instantiatedSession = None
@@ -45,24 +69,24 @@ def process_bronze_to_silver(target_date, minio_endpoint, minio_access_key, mini
     driver_host = os.environ.get("SPARK_DRIVER_HOST")
     driver_bind = os.environ.get("SPARK_DRIVER_BIND_ADDRESS", "0.0.0.0")
 
-    builder = SparkSession.builder.appName("Covid_Bronze_To_Silver") \
-        .master(spark_master) \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-        .config("spark.hadoop.fs.s3a.endpoint", minio_endpoint) \
-        .config("spark.hadoop.fs.s3a.access.key", minio_access_key) \
-        .config("spark.hadoop.fs.s3a.secret.key", minio_secret_key) \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
+    builder = (
+        SparkSession.builder.appName("Covid_Bronze_To_Silver")
+        .master(spark_master)
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config("spark.hadoop.fs.s3a.endpoint", minio_endpoint)
+        .config("spark.hadoop.fs.s3a.access.key", minio_access_key)
+        .config("spark.hadoop.fs.s3a.secret.key", minio_secret_key)
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    )
+    builder = _configure_dependencies(builder)
 
     if driver_host:
         builder = builder.config("spark.driver.host", driver_host)
     if driver_bind:
         builder = builder.config("spark.driver.bindAddress", driver_bind)
-    extra_jars = os.environ.get("SPARK_EXTRA_JARS")
-    if extra_jars:
-        builder = builder.config("spark.jars", extra_jars)
 
     # Tải thư viện giao tiếp với S3 (MinIO) và Delta Lake
     spark = builder.getOrCreate()
@@ -213,7 +237,6 @@ def process_bronze_to_silver(target_date, minio_endpoint, minio_access_key, mini
         # 4. GHI XUỐNG TẦNG SILVER BẰNG DELTA LAKE
         silver_path = "s3a://silver-lake/covid_cleaned/"
         logger.info(f"Ghi Delta vào Silver: {silver_path}")
-        logger.info(f"Schema Silver (moi) se ghi: {clean_df.dtypes}")
 
         # Log schema hiện tại của Silver (nếu đã tồn tại) để dễ so sánh
         try:
